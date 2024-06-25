@@ -1,14 +1,11 @@
 <?php
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Money extends Model
 {
-    use HasFactory;
-
-    protected $fillable = ['customer_id', 'doctor_id', 'service_id', 'price'];
+    protected $fillable = ['amount', 'customer_id', 'doctor_id', 'service_id'];
 
     public function customer()
     {
@@ -25,3 +22,4 @@ class Money extends Model
         return $this->belongsTo(Service::class);
     }
 }
+
