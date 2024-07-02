@@ -1,10 +1,10 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
@@ -12,56 +12,62 @@ class UserController extends Controller
     public function index()
     {
         $users = User::all();
-
-        return view('users.index', compact('users'));
+        return response()->json($users);
     }
 
     public function create()
     {
         $roles = Role::all();
-
-        return view('users.create', compact('roles'));
+        return response()->json($roles);
     }
 
     public function store(Request $request)
     {
+        // Log incoming request data
+        Log::info('Store User Request:', $request->all());
+
         $request->validate([
-            'name' => 'required',
+            'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:6',
-            'roles' => 'required|array',
+            'password' => 'required|string|min:6',
+            'role_id' => 'required|integer' // Validate as integer
         ]);
+
+        $role = Role::findOrFail($request->input('role_id'));
 
         $user = User::create([
             'name' => $request->input('name'),
             'email' => $request->input('email'),
             'password' => Hash::make($request->input('password')),
+            'role_id' => $role->id // Save role_id instead of role_name
         ]);
 
-        $user->assignRole($request->input('roles'));
+        // Log created user data
+        Log::info('User Created:', $user->toArray());
 
-        return redirect()->route('users.index')->with('success', 'User created successfully');
+        return response()->json(['success' => 'User created successfully']);
     }
 
     public function edit(User $user)
     {
         $roles = Role::all();
-
-        return view('users.edit', compact('user', 'roles'));
+        return response()->json(['user' => $user, 'roles' => $roles]);
     }
 
     public function update(Request $request, User $user)
     {
         $request->validate([
-            'name' => 'required',
+            'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'password' => 'nullable|min:6',
-            'roles' => 'required|array',
+            'role_id' => 'required|integer' // Validate as integer
         ]);
+
+        $role = Role::findOrFail($request->input('role_id'));
 
         $user->update([
             'name' => $request->input('name'),
             'email' => $request->input('email'),
+            'role_id' => $role->id // Update role_id instead of role_name
         ]);
 
         if ($request->filled('password')) {
@@ -70,15 +76,21 @@ class UserController extends Controller
             ]);
         }
 
-        $user->syncRoles($request->input('roles'));
-
-        return redirect()->route('users.index')->with('success', 'User updated successfully');
+        return response()->json(['success' => 'User updated successfully']);
     }
 
     public function destroy(User $user)
     {
         $user->delete();
+        return response()->json(['success' => 'User deleted successfully']);
+    }
+    public function getUserRoles($userId)
+    {
+        $user = User::find($userId);
+        if ($user) {
+            return response()->json(['role_id' => $user->role_id]);
+        }
 
-        return redirect()->route('users.index')->with('success', 'User deleted successfully');
+        return response()->json(['error' => 'User not found.'], 404);
     }
 }

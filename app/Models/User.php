@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -15,7 +14,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     use HasFactory, Notifiable, HasRoles;
 
     /**
-     * The attributes that are mass assignable.
+     * Атрибуты, которые можно массово назначить.
      *
      * @var array
      */
@@ -23,10 +22,11 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
         'name',
         'email',
         'password',
+        'role_id'
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * Атрибуты, которые должны быть скрыты для сериализации.
      *
      * @var array
      */
@@ -36,7 +36,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     ];
 
     /**
-     * The attributes that should be cast.
+     * Атрибуты, которые должны быть преобразованы.
      *
      * @var array
      */
@@ -45,7 +45,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     ];
 
     /**
-     * Get the identifier that will be stored in the subject claim of the JWT.
+     * Получить идентификатор, который будет храниться в субъективной претензии JWT.
      *
      * @return mixed
      */
@@ -55,45 +55,12 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     }
 
     /**
-     * Return a key value array, containing any custom claims to be added to the JWT.
+     * Вернуть массив пар ключ-значение, содержащий любые пользовательские претензии, которые должны быть добавлены к JWT.
      *
      * @return array
      */
     public function getJWTCustomClaims()
     {
         return [];
-    }
-
-    /**
-     * Assign a role to the user.
-     *
-     * @param string|array $role
-     * @return $this
-     */
-    public function assignRole($role)
-    {
-        return $this->roles()->sync($role);
-    }
-
-    /**
-     * Revoke a role from the user.
-     *
-     * @param string|array $role
-     * @return $this
-     */
-    public function revokeRole($role)
-    {
-        return $this->roles()->detach($role);
-    }
-
-    /**
-     * Check if the user has a specific role.
-     *
-     * @param string $role
-     * @return bool
-     */
-    public function hasRole($role)
-    {
-        return $this->roles->contains('name', $role);
     }
 }

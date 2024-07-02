@@ -75,6 +75,17 @@ return new class extends Migration
                 ->references('id')->on(Models::table('abilities'))
                 ->onUpdate('cascade')->onDelete('cascade');
         });
+
+        // Добавление столбца role_id в таблицу users
+        Schema::table('users', function (Blueprint $table) {
+            if (!Schema::hasColumn('users', 'role_id')) {
+                $table->bigInteger('role_id')->unsigned()->nullable();
+
+                $table->foreign('role_id')
+                    ->references('id')->on(Models::table('roles'))
+                    ->onUpdate('cascade')->onDelete('set null');
+            }
+        });
     }
 
     /**
@@ -84,9 +95,14 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::drop(Models::table('permissions'));
-        Schema::drop(Models::table('assigned_roles'));
-        Schema::drop(Models::table('roles'));
-        Schema::drop(Models::table('abilities'));
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropForeign(['role_id']);
+            $table->dropColumn('role_id');
+        });
+
+        Schema::dropIfExists(Models::table('permissions'));
+        Schema::dropIfExists(Models::table('assigned_roles'));
+        Schema::dropIfExists(Models::table('roles'));
+        Schema::dropIfExists(Models::table('abilities'));
     }
 };
